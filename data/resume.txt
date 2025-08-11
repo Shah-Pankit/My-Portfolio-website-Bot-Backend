@@ -1,0 +1,135 @@
+PANKIT SHAH
+AI/ML ENGINEER
+
++91 7229013335
+
+pankitshah493@gmail.com
+
+Pankit Shah
+
+My Github
+
+My Portfolio
+
+EDUCATION
+Gujarat Technological University
+B.E. (Hons.) in Computer Engineering With Specialization in Data Science
+CGPA: 9.00
+
+(May 2021 – May 2025)
+Ahmedabad,Gujarat,India
+
+EXPERIENCE
+Deep Learning Titans
+
+(Jan 2025 - March 2025)
+Remote ( Ahmedabad,Gujarat,India )
+
+Artificial Intelligence Intern
+
+Developed an AI-powered system for blockchain market analysis, tracking top investors' trades and
+predicting token sentiment using LLM-based sentiment analysis.
+Implemented data scraping and sentiment evaluation by leveraging Selenium, JavaScript, and Twitter
+data to analyze influential market participants’ sentiments and trading behaviors.
+Fine-tuned a Large Language Model (LLM) using Hugging Face to enhance sentiment accuracy,
+integrating insights into a client-side API for informed trading decisions.
+Lintel Technologies Pvt. Ltd.
+
+(Oct 2024 – Dec 2024)
+
+AI/ML Intern
+
+Ahmedabad,Gujarat,India
+Developed a robust speech-to-text system using state-of-the-art ASR models to transcribe customer
+service calls with high accuracy.
+Designed and implemented a structured database solution to efficiently store and manage both audio
+recordings and their corresponding transcriptions.
+Created an NLP pipeline to automatically extract relevant details, user intents, and key information
+from transcribed conversations.
+Integrated a transformer-based summarization model to generate brief, informative summaries of
+each call for streamlined client insights.
+(Aug 2024 – Oct 2024)
+Ahmedabad,Gujarat,India
+
+Fx is AI
+Machine Learning Intern
+
+Built a chatbot for the client based on the U.S. legal system using RAG pipelines, Qdrant, Docker, and
+AWS tools.
+Designed a dual-interface: a user-side chatbot for retrieving legal documents and queries, and a
+admin-side dashboard for document uploads and chatbot management.
+Enabled chatbot-generated legal documents like FIRs and agreements and integrated robust error
+handling.
+Optimized retrieval accuracy while ensuring compliance with U.S. legal frameworks.
+Smapca Pvt. Ltd. & Cognian (SAL College)
+
+(Dec 2023– Feb 2024)
+
+Machine Learning Research Intern
+
+Ahmedabad,Gujarat,India
+Created a smart shopping cart system using VGG16 to detect and display items placed in the cart.
+Developed a dual-interface: an admin panel for product database management and a user interface
+with Razorpay integration for seamless checkout.
+Worked on hardware implementation using Raspberry Pi and display for a functional end-to-end
+prototype.
+Trained the model with 10,000+ images, achieving 75%+ detection accuracy for grocery items.
+
+1
+
+TECHNICAL SKILLS
+Languages: Python, SQL, C, JavaScript.
+Libraries & ML Frameworks: TensorFlow, PyTorch, Scikit-learn, XGBoost, Transformers, Pandas, NumPy,
+OpenCV, FinBERT, NLTK.
+Frameworks: Flask, FastAPI, Django
+NLP & LLMs: Hugging Face, RAG Pipelines, Tesseract OCR, Sentiment Analysis
+Databases: MySQL, Redis, NoSQL
+Tools & Platforms: Docker, GitHub, GitLab, Selenium, DBeaver CE, AWS (EC2, S3), Azure
+
+PROJECTS
+NewsSummarizerTTS | HuggingFace, LLM, Web Scraping, TTS | Github
+
+(April 2025)
+
+Built a web-based app to summarize company-related news and convert it to Hindi audio.
+Used LLM to validate and correct user-input company names.
+Scraped live news from a website and performed real-time summarization.
+Integrated Hindi TTS model for generating audio from summarized output.
+(March 2025)
+
+NeuroScholar | Streamlit, HuggingFace, Groq, Qdrant, Tesseract OCR | Github
+Built an AI-powered RAG chatbot for extracting knowledge from PDFs.
+Used Streamlit for UI, Qdrant for vector search, and Groq LLM for responses.
+Integrated OCR (Tesseract, PyMuPDF) for scanned documents.
+Optimized retrieval with semantic search & context-aware querying.
+Laptop Price Predictor | Flask, HTML, CSS | Github
+
+(May 2024)
+
+Developed a full-stack application using Flask, HTML, and CSS to predict laptop prices based on input
+parameters.
+Implemented regression algorithms for price prediction, achieving high model accuracy.
+Designed an intuitive user interface for seamless interaction and data input.
+Optimized the backend to process predictions efficiently and ensure reliable performance.
+Chatbot for Rajkot Municipal Corporation | Dialogflow, FastAPI, MySQL | Github
+
+(Dec 2023)
+
+Incorporated Dialogflow’s NLP and Intent Classification for efficient user interactions.
+Employed FastAPI Python backend for seamless functionality.
+Crafted intuitive frontend using HTML/CSS for optimal user experience.
+
+COURSE CERTIFICATIONS
+Machine Learning Specialization
+
+Nov 2023 - Apr 2024
+
+Offered by Stanford Online & DeepLearning.ai on Coursera
+
+Generative AI for Everyone
+
+Dec 2023 - Dec 2023
+
+Offered by Stanford Online & DeepLearning.ai on Coursera
+
+2

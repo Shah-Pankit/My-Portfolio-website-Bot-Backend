@@ -1,0 +1,5 @@
+newvenv
+__pycache__
+site_chunks.txt
+.env
+

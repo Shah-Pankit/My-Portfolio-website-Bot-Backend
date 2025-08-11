@@ -1,0 +1,30 @@
+[
+  {
+    "company": "Deep Learning Titans",
+    "title": "Artificial Intelligence Intern",
+    "duration": "Jan 2025 - Mar 2025",
+    "location": "Remote (Ahmedabad, Gujarat, India)",
+    "description": "Developed an AI-powered system for blockchain market analysis, tracking top investors' trades and predicting token sentiment using LLM-based sentiment analysis. Used Selenium, JavaScript, and Twitter data for scraping, and fine-tuned an LLM via Hugging Face. Results were integrated into a client-side API for smart trading insights."
+  },
+  {
+    "company": "Lintel Technologies Pvt. Ltd.",
+    "title": "AI/ML Intern",
+    "duration": "Oct 2024 - Dec 2024",
+    "location": "Ahmedabad, Gujarat, India",
+    "description": "Built a speech-to-text system using ASR models to transcribe customer service calls. Created a structured database for audio & transcripts, NLP pipeline for extracting key info, and transformer-based summarization for call insights."
+  },
+  {
+    "company": "Fx is AI",
+    "title": "Machine Learning Intern",
+    "duration": "Aug 2024 - Oct 2024",
+    "location": "Ahmedabad, Gujarat, India",
+    "description": "Built a legal chatbot using RAG pipelines, Qdrant, Docker, and AWS. Developed user and admin interfaces, document upload and retrieval logic, and enabled chatbot to generate FIRs and agreements. Ensured retrieval accuracy and U.S. legal compliance."
+  },
+  {
+    "company": "Smapca Pvt. Ltd. & Cognian (SAL College)",
+    "title": "Machine Learning Research Intern",
+    "duration": "Dec 2023 - Feb 2024",
+    "location": "Ahmedabad, Gujarat, India",
+    "description": "Created a smart shopping cart using VGG16 for grocery detection, admin panel for database, user UI with Razorpay checkout, Raspberry Pi integration, and achieved 75%+ accuracy over 10K+ images."
+  }
+]

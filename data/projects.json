@@ -1,0 +1,47 @@
+[
+  {
+    "title": "AI News Summarizer TTS",
+    "description": "A sleek Streamlit app that auto-corrects company names, scrapes and summarizes the latest news, then speaks it out in Hindi via TTS.",
+    "github": "https://github.com/Shah-Pankit/News_Summarizer_TTS"
+  },
+  {
+    "title": "Fake News Classifier",
+    "description": "LSTM-based deep learning model that detects fake news by analyzing article text, using the Kaggle Fake News dataset for training and evaluation.",
+    "github": "https://github.com/Shah-Pankit/Kaggle-Faker-News-Classification-using-DL"
+  },
+  {
+    "title": "Sentiment Analyzer",
+    "description": "A Sentiment classification system using NLTK to categorize user comments into positive, neutral, or negative classes via natural language processing.",
+    "github": "https://github.com/Shah-Pankit/NPN-Sentiment-analysis-using-NLP"
+  },
+  {
+    "title": "Spam Classifier",
+    "description": "An NLP-based system using NLTK and Bag-of-Words to classify text messages as Spam or Ham.",
+    "github": "https://github.com/Shah-Pankit/SpamClassifier-using-Python-NLP-Project1-Full"
+  },
+  {
+    "title": "Laptop Price Predictor",
+    "description": "Predicts the estimate price of any laptop based on input parameters like size of RAM, CPU type, GPU type, etc.",
+    "github": "https://github.com/Shah-Pankit/Laptop-Price-Predictor"
+  },
+  {
+    "title": "AI Lead Intent Scorer",
+    "description": "An AI-powered tool that automatically analyzes and scores lead intent, helping businesses prioritize high-quality prospects with data-driven insights.",
+    "github": "https://github.com/Shah-Pankit/AI-Lead-Intent-Score"
+  },
+  {
+    "title": "NeuroScholar",
+    "description": "NeuroScholar is an AI-powered assistant that lets you chat with your PDFs and instantly extract insights, summaries, and answers from academic papers.",
+    "github": "https://github.com/Shah-Pankit/NeuroScholar"
+  },
+  {
+    "title": "AI Audio Control",
+    "description": "Hand gesture-based system volume controller using computer vision and real-time hand tracking with OpenCV and MediaPipe.",
+    "github": "https://github.com/Shah-Pankit/ai-volume-controller"
+  },
+  {
+    "title": "Chatbot for RMC",
+    "description": "An AI-powered chatbot that instantly answers user questions by extracting information from the Rajkot Municipal Corporation website.",
+    "github": "https://github.com/Shah-Pankit/Chatbot-for-RMC"
+  }
+]
