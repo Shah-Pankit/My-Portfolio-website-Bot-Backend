@@ -301,6 +301,7 @@ async def groq_chat_completion(
 
 
 # ---------- Endpoints ----------
+
 @app.get("/")
 def health():
     return {
@@ -308,6 +309,11 @@ def health():
         "chunks": len(CORPUS),
         "groq_keys": len(GROQ_API_KEYS),
     }
+
+
+@app.get("/health")
+def health_alias():
+    return {"status": "ok"}
 
 
 @app.post("/api/chat")
