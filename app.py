@@ -5,6 +5,9 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import httpx
+import smtplib, ssl
+from email.mime.text import MIMEText
+import time, random
 
 # ---------- Config ----------
 load_dotenv()
@@ -24,6 +27,66 @@ def _load_groq_keys() -> list[str]:
 
 
 GROQ_API_KEYS: list[str] = _load_groq_keys()
+
+# --- Key selection state (primary + secondary rotation) ---
+
+PRIMARY_KEY: str = (os.getenv("GROQ_API_KEY", "") or "").strip()
+SECONDARY_KEYS: list[str] = [k for k in GROQ_API_KEYS if k and k != PRIMARY_KEY]
+
+# Per-key cooldowns (unix timestamps) + permanently bad keys
+KEY_BACKOFFS: dict[str, float] = {}
+BAD_KEYS: set[str] = set()
+
+# Round-robin pointer for SECONDARY_KEYS
+RR_IDX: int = 0
+
+
+def _select_key_order() -> list[tuple[str, str]]:
+    """
+    Returns a prioritized list of (kind, key):
+      - 'primary' first if ready (not bad & beyond cooldown)
+      - then secondary keys in round-robin order if ready
+      - if nothing is ready, returns the earliest-cooling key as a last resort
+    """
+    now = time.time()
+    order: list[tuple[str, str]] = []
+
+    # 1) Primary first when ready
+    if (
+        PRIMARY_KEY
+        and PRIMARY_KEY not in BAD_KEYS
+        and KEY_BACKOFFS.get(PRIMARY_KEY, 0) <= now
+    ):
+        order.append(("primary", PRIMARY_KEY))
+
+    # 2) Secondary keys (ready) in round-robin order
+    if SECONDARY_KEYS:
+        n = len(SECONDARY_KEYS)
+        start = RR_IDX % n
+        rotated = SECONDARY_KEYS[start:] + SECONDARY_KEYS[:start]
+        for k in rotated:
+            if k in BAD_KEYS:
+                continue
+            if KEY_BACKOFFS.get(k, 0) <= now:
+                order.append(("secondary", k))
+
+    # 3) If nothing ready, add the earliest-cooling candidate as a last resort
+    if not order:
+        candidates: list[tuple[float, tuple[str, str]]] = []
+        if PRIMARY_KEY and PRIMARY_KEY not in BAD_KEYS:
+            candidates.append(
+                (KEY_BACKOFFS.get(PRIMARY_KEY, 0), ("primary", PRIMARY_KEY))
+            )
+        for k in SECONDARY_KEYS:
+            if k in BAD_KEYS:
+                continue
+            candidates.append((KEY_BACKOFFS.get(k, 0), ("secondary", k)))
+        if candidates:
+            candidates.sort(key=lambda t: t[0])
+            order.append(candidates[0][1])
+
+    return order
+
 
 DATA_DIR = Path("data")
 CORPUS_PATH = DATA_DIR / "corpus.json"
@@ -249,6 +312,38 @@ def markdown_to_ul(text: str) -> str:
     return "<ul>" + "".join(f"<li>{i}</li>" for i in items) + "</ul>"
 
 
+def _send_lead_email(lead: dict) -> None:
+    host = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+    port = int(os.getenv("EMAIL_PORT", "587"))
+    user = os.getenv("EMAIL_USER")
+    pwd = os.getenv("EMAIL_PASS")
+    to = os.getenv("EMAIL_TO", user)
+    from_addr = os.getenv("EMAIL_FROM", user)
+
+    if not (user and pwd and to):
+        raise RuntimeError("EMAIL_USER/EMAIL_PASS/EMAIL_TO missing in .env")
+
+    body = (
+        f"New portfolio chatbot lead\n\n"
+        f"Name: {lead.get('name')}\n"
+        f"Email: {lead.get('email')}\n"
+        f"Company: {lead.get('company')}\n"
+        f"Position: {lead.get('position')}\n"
+        f"Role (optional): {lead.get('role') or '-'}\n"
+    )
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = "Portfolio Chatbot Lead"
+    msg["From"] = from_addr
+    msg["To"] = to
+
+    ctx = ssl.create_default_context()
+    with smtplib.SMTP(host, port) as server:
+        server.ehlo()
+        server.starttls(context=ctx)
+        server.login(user, pwd)
+        server.sendmail(from_addr, [to], msg.as_string())
+
+
 def force_ul_list(text: str) -> str:
     return markdown_to_ul(text)
 
@@ -269,14 +364,56 @@ CONTACT_INSTR = (
 )
 
 
-# ---------- Groq call with fallback over multiple API keys ----------
+# # ---------- Groq call with fallback over multiple API keys ----------
+# async def groq_chat_completion(
+#     messages: list[dict], temperature: float = 0.2
+# ) -> Optional[str]:
+#     if not GROQ_API_KEYS:
+#         return None
+#     async with httpx.AsyncClient(timeout=30.0) as client:
+#         for key in GROQ_API_KEYS:
+#             try:
+#                 r = await client.post(
+#                     "https://api.groq.com/openai/v1/chat/completions",
+#                     headers={"Authorization": f"Bearer {key}"},
+#                     json={
+#                         "model": GROQ_MODEL,
+#                         "messages": messages,
+#                         "temperature": temperature,
+#                     },
+#                 )
+#             except httpx.HTTPError:
+#                 continue
+#             if r.status_code in (401, 403, 408, 409, 429, 500, 502, 503, 504):
+#                 continue
+#             if r.status_code != 200:
+#                 continue
+#             data = r.json()
+#             reply = (data.get("choices") or [{}])[0].get("message", {}).get("content")
+#             if reply:
+#                 return reply
+#     return None
+
+
+# ---------- Groq call with cooldown + primary re-probe + RR secondaries ----------
 async def groq_chat_completion(
     messages: list[dict], temperature: float = 0.2
 ) -> Optional[str]:
-    if not GROQ_API_KEYS:
+    global RR_IDX
+
+    # If you only set GROQ_API_KEY (primary), that still works.
+    if not (PRIMARY_KEY or SECONDARY_KEYS):
         return None
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        for key in GROQ_API_KEYS:
+
+    # Tight, sane timeouts
+    timeout = httpx.Timeout(connect=5.0, read=30.0, write=5.0, pool=5.0)
+
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        for kind, key in _select_key_order():
+            # Skip if still in cooldown (guard; _select_key_order tries to avoid these)
+            if KEY_BACKOFFS.get(key, 0) > time.time():
+                continue
+
             try:
                 r = await client.post(
                     "https://api.groq.com/openai/v1/chat/completions",
@@ -284,19 +421,62 @@ async def groq_chat_completion(
                     json={
                         "model": GROQ_MODEL,
                         "messages": messages,
-                        "temperature": temperature,
+                        "temperature": float(temperature),
                     },
                 )
-            except httpx.HTTPError:
+            except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPError):
+                # transient network → short backoff
+                KEY_BACKOFFS[key] = time.time() + 15
                 continue
-            if r.status_code in (401, 403, 408, 409, 429, 500, 502, 503, 504):
+
+            # Status handling
+            if r.status_code in (401, 403):
+                # permanently invalid key → never try again this process
+                BAD_KEYS.add(key)
                 continue
+
+            if r.status_code == 429:
+                # rate limited → respect Retry-After when possible
+                ra = r.headers.get("Retry-After")
+                try:
+                    ra_s = int(ra) if ra else 20
+                except Exception:
+                    ra_s = 20
+                KEY_BACKOFFS[key] = time.time() + max(10, min(60, ra_s))
+                continue
+
+            if r.status_code in (408, 409, 500, 502, 503, 504):
+                # temporary → brief cooldown
+                KEY_BACKOFFS[key] = time.time() + 10
+                continue
+
             if r.status_code != 200:
+                # other client errors → try next key
                 continue
-            data = r.json()
-            reply = (data.get("choices") or [{}])[0].get("message", {}).get("content")
-            if reply:
-                return reply
+
+            # Parse success
+            try:
+                data = r.json()
+                txt = (
+                    data.get("choices", [{}])[0]
+                    .get("message", {})
+                    .get("content", "")
+                    .strip()
+                )
+                if txt:
+                    # Advance RR when a secondary succeeds
+                    if kind == "secondary" and SECONDARY_KEYS:
+                        try:
+                            idx = SECONDARY_KEYS.index(key)
+                            RR_IDX = (idx + 1) % len(SECONDARY_KEYS)
+                        except ValueError:
+                            pass
+                    return txt
+            except Exception:
+                # malformed → try next key
+                continue
+
+    # exhausted all candidates
     return None
 
 
@@ -389,3 +569,31 @@ async def chat(req: Request):
         "reply": reply,
         "updatedHistory": f"{history}\nUser: {user_msg}\nBot: {reply}",
     }
+
+
+@app.post("/api/lead")
+async def lead(req: Request):
+    data = await req.json()
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip()
+    company = (data.get("company") or "").strip()
+    position = (data.get("position") or "").strip()
+    role = (data.get("role") or "").strip()
+
+    # basic validation
+    if not name or not email or not company or not position:
+        return {"ok": False, "error": "Missing required fields."}
+
+    try:
+        _send_lead_email(
+            {
+                "name": name,
+                "email": email,
+                "company": company,
+                "position": position,
+                "role": role,
+            }
+        )
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": f"Email send failed: {e!r}"}
