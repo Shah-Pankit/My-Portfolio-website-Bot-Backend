@@ -5,8 +5,6 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import httpx
-import smtplib, ssl
-from email.mime.text import MIMEText
 import time, random
 
 # ---------- Config ----------
@@ -312,36 +310,7 @@ def markdown_to_ul(text: str) -> str:
     return "<ul>" + "".join(f"<li>{i}</li>" for i in items) + "</ul>"
 
 
-def _send_lead_email(lead: dict) -> None:
-    host = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-    port = int(os.getenv("EMAIL_PORT", "587"))
-    user = os.getenv("EMAIL_USER")
-    pwd = os.getenv("EMAIL_PASS")
-    to = os.getenv("EMAIL_TO", user)
-    from_addr = os.getenv("EMAIL_FROM", user)
 
-    if not (user and pwd and to):
-        raise RuntimeError("EMAIL_USER/EMAIL_PASS/EMAIL_TO missing in .env")
-
-    body = (
-        f"New portfolio chatbot lead\n\n"
-        f"Name: {lead.get('name')}\n"
-        f"Email: {lead.get('email')}\n"
-        f"Company: {lead.get('company')}\n"
-        f"Position: {lead.get('position')}\n"
-        f"Role (optional): {lead.get('role') or '-'}\n"
-    )
-    msg = MIMEText(body, "plain", "utf-8")
-    msg["Subject"] = "Portfolio Chatbot Lead"
-    msg["From"] = from_addr
-    msg["To"] = to
-
-    ctx = ssl.create_default_context()
-    with smtplib.SMTP(host, port) as server:
-        server.ehlo()
-        server.starttls(context=ctx)
-        server.login(user, pwd)
-        server.sendmail(from_addr, [to], msg.as_string())
 
 
 def force_ul_list(text: str) -> str:
@@ -522,20 +491,6 @@ async def chat(req: Request):
             "updatedHistory": f"{history}\nUser: {user_msg}\nBot: {reply}",
         }
 
-    # Show all experiences (deterministic)
-    if re.search(
-        r"\b(experience|experiences|internship|internships)\b", user_msg, flags=re.I
-    ) and not re.search(
-        r"\b(summarize|summary|insight|insights|explain|describe|detail|details)\b",
-        user_msg,
-        flags=re.I,
-    ):
-        exps = _load_exp_entries()
-        reply = format_experiences_ul(exps)
-        return {
-            "reply": reply,
-            "updatedHistory": f"{history}\nUser: {user_msg}\nBot: {reply}",
-        }
 
     # 2) Chunk-based RAG for EVERYTHING ELSE
     ctx_chunks = retrieve_merged(user_msg, k=8)
@@ -571,29 +526,4 @@ async def chat(req: Request):
     }
 
 
-@app.post("/api/lead")
-async def lead(req: Request):
-    data = await req.json()
-    name = (data.get("name") or "").strip()
-    email = (data.get("email") or "").strip()
-    company = (data.get("company") or "").strip()
-    position = (data.get("position") or "").strip()
-    role = (data.get("role") or "").strip()
 
-    # basic validation
-    if not name or not email or not company or not position:
-        return {"ok": False, "error": "Missing required fields."}
-
-    try:
-        _send_lead_email(
-            {
-                "name": name,
-                "email": email,
-                "company": company,
-                "position": position,
-                "role": role,
-            }
-        )
-        return {"ok": True}
-    except Exception as e:
-        return {"ok": False, "error": f"Email send failed: {e!r}"}
